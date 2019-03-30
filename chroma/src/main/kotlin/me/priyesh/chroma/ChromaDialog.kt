@@ -99,6 +99,13 @@ class ChromaDialog : DialogFragment() {
       }
     })
 
+    chromaView.enablePreviewClick(object : ChromaView.PreviewClickListener {
+      override fun onClick(color: Int) {
+        listener?.onColorSelected(color)
+        dismiss()
+      }
+    })
+
     return AlertDialog.Builder(context).setView(chromaView).create().apply {
       setOnShowListener {
         val width: Int; val height: Int

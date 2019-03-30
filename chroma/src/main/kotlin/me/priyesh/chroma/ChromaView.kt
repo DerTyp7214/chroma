@@ -24,6 +24,7 @@ import android.support.annotation.ColorInt
 import android.support.v4.graphics.ColorUtils
 import android.support.v7.graphics.Palette
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextUtils
 import android.text.TextWatcher
 import android.view.View
@@ -33,7 +34,10 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import me.priyesh.chroma.internal.ChannelView
-import kotlin.math.min
+import android.graphics.drawable.RippleDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.ShapeDrawable
+
 
 class ChromaView : RelativeLayout {
 
@@ -47,6 +51,8 @@ class ChromaView : RelativeLayout {
   val colorMode: ColorMode
   private var channelViews: List<ChannelView>? = null
   private var hexView: EditText? = null
+
+  private var updateClickHandler: ((Palette.Swatch) -> Unit)? = null
 
   constructor(context: Context) : this(DefaultColor, DefaultModel, context)
 
@@ -80,17 +86,23 @@ class ChromaView : RelativeLayout {
 
       it.registerListener(seekbarChangeListener)
     }
+    if (colorMode == ColorMode.ARGB) {
+      hexView?.layoutParams?.width = resources.getDimensionPixelSize(R.dimen.hex_view_width_argb)
+    }
+    hexView?.filters = arrayOf(InputFilter.LengthFilter(colorMode.hexLength + 1), InputFilter.AllCaps(),
+            InputFilter { source, start, end, dest, dstart, dend ->
+              val filtered = source.filterIndexed { index, c ->
+                val idx = dstart + index
+                (c == '#' && idx == 0 && !dest.contains('#')) || c in "0123456789ABCDEF"
+              }
+              if (dstart == 0 && filtered.getOrNull(0) != '#' && !dest.removeRange(dstart until dend).contains('#')) {
+                filtered.padStart(1, '#')
+              } else filtered
+            })
     hexView?.addTextChangedListener(object : TextWatcher {
       override fun afterTextChanged(s: Editable?) {
-        var selection = hexView!!.selectionEnd
-
-        val original = s.toString()
-        if(!TextUtils.isEmpty(original)) {
-          var str = original.removePrefix("#").toUpperCase().filter { it in "0123456789ABCDEF"}
-          str = "#${str.substring(0 until min(colorMode.hexLength, str.length))}"
-          if (str != original) {
-            hexView!!.text = str.toEditable()
-            selection += str.length - original.length
+        val str = s.toString()
+        if(!TextUtils.isEmpty(str)) {
             try {
               currentColor = Color.parseColor(str)
               fromHex = true
@@ -100,11 +112,7 @@ class ChromaView : RelativeLayout {
                 it.setByColor(currentColor)
               }
             } catch (ignored: Exception) {}
-          }
         }
-
-        val len = hexView!!.length()
-        hexView!!.setSelection(min(selection, len), min(selection, len))
       }
 
       override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -125,7 +133,7 @@ class ChromaView : RelativeLayout {
       it.applyColor(currentColor)
     }
 
-    val swatch = Palette.Swatch(currentColor, 1)
+    val swatch = Palette.Swatch(ColorUtils.compositeColors(currentColor, Color.WHITE), 1)
     hexView?.apply {
       if (!fromHex) { text = "#${colorMode.toHex(colorMode.evaluateColor(colorMode.channels))}".toEditable() }
       setTextColor(swatch.bodyTextColor)
@@ -134,11 +142,16 @@ class ChromaView : RelativeLayout {
         backgroundTintList = ColorStateList.valueOf(swatch.titleTextColor)
       }
     }
+    updateClickHandler?.invoke(swatch)
   }
 
   interface ButtonBarListener {
     fun onPositiveButtonClick(color: Int)
     fun onNegativeButtonClick()
+  }
+
+  interface PreviewClickListener {
+    fun onClick(color: Int)
   }
 
   fun enableButtonBar(listener: ButtonBarListener?) {
@@ -156,5 +169,29 @@ class ChromaView : RelativeLayout {
         negativeButton.setOnClickListener(null)
       }
     }
+  }
+
+  fun enablePreviewClick(listener: ChromaView.PreviewClickListener) {
+    with(findViewById<View>(R.id.click_handler)) {
+      setOnClickListener { listener.onClick(currentColor) }
+      var color = Color.TRANSPARENT
+      updateClickHandler = {
+        if (it.bodyTextColor != color) {
+          color = it.bodyTextColor
+          val pressedColor = ColorStateList.valueOf(color)
+          val rippleColor = getRippleColor(color)
+          background = RippleDrawable(
+                  pressedColor,
+                  null,
+                  rippleColor
+          )
+        }
+      }
+      applyColor()
+    }
+  }
+
+  private fun getRippleColor(color: Int): Drawable {
+    return ShapeDrawable().apply { paint.color = color }
   }
 }

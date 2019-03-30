@@ -113,7 +113,7 @@ internal class ChannelView(
   }
 
   fun applyColor(color: Int) {
-    val stateList = ColorStateList.valueOf(color)
+    val stateList = ColorStateList.valueOf(channel.seperate(color))
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       findViewById<SeekBar>(R.id.seekbar).apply {
         thumbTintList = stateList

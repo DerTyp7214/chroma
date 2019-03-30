@@ -23,10 +23,10 @@ enum class ColorMode {
   ARGB {
     override val hexLength = 8
     override val channels: List<Channel> = listOf(
-        Channel(R.string.channel_alpha, 0, 255, Color::alpha),
-        Channel(R.string.channel_red, 0, 255, Color::red),
-        Channel(R.string.channel_green, 0, 255, Color::green),
-        Channel(R.string.channel_blue, 0, 255, Color::blue)
+        Channel(R.string.channel_alpha, 0, 255, Color::alpha, {color -> Color.argb(Color.alpha(color), 0, 0, 0)}),
+        Channel(R.string.channel_red, 0, 255, Color::red, {color -> Color.rgb( Color.red(color), 0, 0)}),
+        Channel(R.string.channel_green, 0, 255, Color::green, {color -> Color.rgb( 0, Color.green(color), 0)}),
+        Channel(R.string.channel_blue, 0, 255, Color::blue, {color -> Color.rgb(0, 0, Color.blue(color))})
     )
 
     override fun evaluateColor(channels: List<Channel>): Int = Color.argb(
@@ -48,9 +48,9 @@ enum class ColorMode {
   HSV {
     override val hexLength = 6
     override val channels: List<Channel> = listOf(
-        Channel(R.string.channel_hue, 0, 360, ::hue),
-        Channel(R.string.channel_saturation, 0, 100, ::saturation, { color -> saturation(color) * 100 }),
-        Channel(R.string.channel_value, 0, 100, ::value, { color -> value(color) * 100 })
+        Channel(R.string.channel_hue, 0, 350, ::hue, {color -> Color.HSVToColor(floatArrayOf(hue(color).toFloat(), 100f, 100f))}),
+        Channel(R.string.channel_saturation, 0, 100, ::saturation, {color -> Color.HSVToColor(floatArrayOf(hue(color).toFloat(), saturation(color).toFloat(), 100f))}, { color -> saturation(color) * 100 }),
+        Channel(R.string.channel_value, 0, 100, ::value, {color -> Color.HSVToColor(floatArrayOf(hue(color).toFloat(), 100f, value(color).toFloat()))}, { color -> value(color) * 100 })
     )
 
     override fun evaluateColor(channels: List<Channel>): Int = Color.HSVToColor(
@@ -74,6 +74,7 @@ enum class ColorMode {
   internal data class Channel(val nameResourceId: Int,
                               val min: Int, val max: Int,
                               val extractor: (color: Int) -> Int,
+                              val seperate: (color: Int) -> Int,
                               val toProgress: (color: Int) -> Int = { color -> extractor.invoke(color) },
                               var progress: Int = 0)
 

@@ -15,6 +15,7 @@
         <EditText
             android:id="@+id/hex_view"
             android:layout_width="@dimen/hex_view_width"
+            android:fontFamily="monospace"
             android:textAlignment="center"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
