@@ -60,67 +60,67 @@ class ChromaView : RelativeLayout {
   constructor(context: Context) : this(DefaultColor, DefaultModel, context)
 
   constructor(@ColorInt initialColor: Int, colorMode: ColorMode, context: Context) : super(context) {
-        this.currentColor = initialColor
-        this.colorMode = colorMode
-        init()
+      this.currentColor = initialColor
+      this.colorMode = colorMode
+      init()
   }
 
   private fun init() {
-      inflate(context, R.layout.chroma_view, this)
-      clipToPadding = false
+    inflate(context, R.layout.chroma_view, this)
+    clipToPadding = false
 
-      channelViews = colorMode.channels.map { ChannelView(it, currentColor, context) }
-      hexView = findViewById(R.id.hex_view)
+    channelViews = colorMode.channels.map { ChannelView(it, currentColor, context) }
+    hexView = findViewById(R.id.hex_view)
 
+     applyColor()
+
+    val seekbarChangeListener: () -> Unit = {
+      currentColor = colorMode.evaluateColor(channelViews!!.map { it.channel })
       applyColor()
+    }
 
-      val seekbarChangeListener: () -> Unit = {
-        currentColor = colorMode.evaluateColor(channelViews!!.map { it.channel })
-        applyColor()
-      }
+    val channelContainer = findViewById<ViewGroup>(R.id.channel_container)
+    channelViews!!.forEach {
+      channelContainer.addView(it)
 
-      val channelContainer = findViewById<ViewGroup>(R.id.channel_container)
-      channelViews!!.forEach { it ->
-        channelContainer.addView(it)
+      val layoutParams = it.layoutParams as LinearLayout.LayoutParams
+      layoutParams.topMargin = resources.getDimensionPixelSize(R.dimen.channel_view_margin_top)
+      layoutParams.bottomMargin = resources.getDimensionPixelSize(R.dimen.channel_view_margin_bottom)
 
-        val layoutParams = it.layoutParams as LinearLayout.LayoutParams
-        layoutParams.topMargin = resources.getDimensionPixelSize(R.dimen.channel_view_margin_top)
-        layoutParams.bottomMargin = resources.getDimensionPixelSize(R.dimen.channel_view_margin_bottom)
-
-        it.registerListener(seekbarChangeListener)
-      }
-      if (colorMode == ColorMode.ARGB) {
-        hexView?.layoutParams?.width = resources.getDimensionPixelSize(R.dimen.hex_view_width_argb)
-      }
-      hexView?.filters = arrayOf(InputFilter.LengthFilter(colorMode.hexLength + 1), InputFilter.AllCaps(),
-                InputFilter { source, start, end, dest, dstart, dend ->
-                    val filtered = source.filterIndexed { index, c ->
-                        val idx = dstart + index
-                        (c == '#' && idx == 0 && !dest.contains('#')) || c in "0123456789ABCDEF"
-                    }
-                    if (dstart == 0 && filtered.getOrNull(0) != '#' && !dest.removeRange(dstart until dend).contains('#')) {
-                        filtered.padStart(1, '#')
-                    } else filtered
-                })
-        hexView?.addTextChangedListener(object : TextWatcher {
-          override fun afterTextChanged(s: Editable?) {
-            val str = s.toString()
-            if(!TextUtils.isEmpty(str)) {
-              try {
-                currentColor = Color.parseColor(str)
-                fromHex = true
-                applyColor()
-                fromHex = false
-                channelViews?.forEach {
-                  it.setByColor(currentColor)
-                }
-              } catch (ignored: Exception) {}
-            }
+      it.registerListener(seekbarChangeListener)
+    }
+    if (colorMode == ColorMode.ARGB) {
+      hexView?.layoutParams?.width = resources.getDimensionPixelSize(R.dimen.hex_view_width_argb)
+    }
+    hexView?.filters = arrayOf(InputFilter.LengthFilter(colorMode.hexLength + 1), InputFilter.AllCaps(),
+      InputFilter { source, start, end, dest, dstart, dend ->
+        val filtered = source.filterIndexed { index, c ->
+          val idx = dstart + index
+            (c == '#' && idx == 0 && !dest.contains('#')) || c in "0123456789ABCDEF"
           }
+          if (dstart == 0 && filtered.getOrNull(0) != '#' && !dest.removeRange(dstart until dend).contains('#')) {
+            filtered.padStart(1, '#')
+          } else filtered
+      })
+    hexView?.addTextChangedListener(object : TextWatcher {
+      override fun afterTextChanged(s: Editable?) {
+        val str = s.toString()
+        if(!TextUtils.isEmpty(str)) {
+          try {
+            currentColor = Color.parseColor(str)
+            fromHex = true
+            applyColor()
+            fromHex = false
+            channelViews?.forEach {
+              it.setByColor(currentColor)
+            }
+          } catch (ignored: Exception) {}
+        }
+      }
 
-          override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-          override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
+      override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+      override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+    })
   }
 
   // TODO remove all these messy state handling hacks
