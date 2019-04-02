@@ -59,9 +59,9 @@ class ChromaView : RelativeLayout {
   constructor(context: Context) : this(DefaultColor, DefaultModel, context)
 
   constructor(@ColorInt initialColor: Int, colorMode: ColorMode, context: Context) : super(context) {
-      this.currentColor = initialColor
-      this.colorMode = colorMode
-      init()
+    this.currentColor = initialColor
+    this.colorMode = colorMode
+    init()
   }
 
   private fun init() {
