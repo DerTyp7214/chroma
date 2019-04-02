@@ -71,7 +71,7 @@ class ChromaView : RelativeLayout {
     channelViews = colorMode.channels.map { ChannelView(it, currentColor, context) }
     hexView = findViewById(R.id.hex_view)
 
-     applyColor()
+    applyColor()
 
     val seekbarChangeListener: () -> Unit = {
       currentColor = colorMode.evaluateColor(channelViews!!.map { it.channel })
@@ -93,7 +93,7 @@ class ChromaView : RelativeLayout {
     }
     hexView?.filters = arrayOf(InputFilter.LengthFilter(colorMode.hexLength + 1), InputFilter.AllCaps(),
             InputFilter { source, start, end, dest, dstart, dend ->
-               val filtered = source.filterIndexed { index, c ->
+              val filtered = source.filterIndexed { index, c ->
                 val idx = dstart + index
                 (c == '#' && idx == 0 && !dest.contains('#')) || c in "0123456789ABCDEF"
               }
