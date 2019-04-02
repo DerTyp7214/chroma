@@ -46,9 +46,7 @@ class ChromaView : RelativeLayout {
         val DefaultModel = ColorMode.RGB
     }
 
-    @ColorInt
-    var currentColor: Int
-        private set
+    @ColorInt var currentColor: Int private set
 
     val colorMode: ColorMode
     private var channelViews: List<ChannelView>? = null
@@ -107,7 +105,7 @@ class ChromaView : RelativeLayout {
         hexView?.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 val str = s.toString()
-                if (!TextUtils.isEmpty(str)) {
+                if(!TextUtils.isEmpty(str)) {
                     try {
                         currentColor = Color.parseColor(str)
                         fromHex = true
@@ -116,8 +114,7 @@ class ChromaView : RelativeLayout {
                         channelViews?.forEach {
                             it.setByColor(currentColor)
                         }
-                    } catch (ignored: Exception) {
-                    }
+                    } catch (ignored: Exception) {}
                 }
             }
 
@@ -150,9 +147,7 @@ class ChromaView : RelativeLayout {
 
         val swatch = Palette.Swatch(ColorUtils.compositeColors(currentColor, Color.WHITE), 1)
         hexView?.apply {
-            if (!fromHex) {
-                text = "#${colorMode.toHex(colorMode.evaluateColor(colorMode.channels))}".toEditable()
-            }
+            if (!fromHex) { text = "#${colorMode.toHex(colorMode.evaluateColor(colorMode.channels))}".toEditable() }
             setTextColor(swatch.bodyTextColor)
             highlightColor = swatch.titleTextColor
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
