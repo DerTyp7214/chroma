@@ -38,7 +38,6 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import me.priyesh.chroma.internal.ChannelView
 
-
 class ChromaView : RelativeLayout {
 
   companion object {
@@ -93,28 +92,28 @@ class ChromaView : RelativeLayout {
       hexView?.layoutParams?.width = resources.getDimensionPixelSize(R.dimen.hex_view_width_argb)
     }
     hexView?.filters = arrayOf(InputFilter.LengthFilter(colorMode.hexLength + 1), InputFilter.AllCaps(),
-      InputFilter { source, start, end, dest, dstart, dend ->
-        val filtered = source.filterIndexed { index, c ->
-          val idx = dstart + index
-            (c == '#' && idx == 0 && !dest.contains('#')) || c in "0123456789ABCDEF"
-          }
-          if (dstart == 0 && filtered.getOrNull(0) != '#' && !dest.removeRange(dstart until dend).contains('#')) {
-            filtered.padStart(1, '#')
-          } else filtered
-      })
+            InputFilter { source, start, end, dest, dstart, dend ->
+               val filtered = source.filterIndexed { index, c ->
+                val idx = dstart + index
+                (c == '#' && idx == 0 && !dest.contains('#')) || c in "0123456789ABCDEF"
+              }
+              if (dstart == 0 && filtered.getOrNull(0) != '#' && !dest.removeRange(dstart until dend).contains('#')) {
+                filtered.padStart(1, '#')
+              } else filtered
+            })
     hexView?.addTextChangedListener(object : TextWatcher {
       override fun afterTextChanged(s: Editable?) {
         val str = s.toString()
         if(!TextUtils.isEmpty(str)) {
-          try {
-            currentColor = Color.parseColor(str)
-            fromHex = true
-            applyColor()
-            fromHex = false
-            channelViews?.forEach {
-              it.setByColor(currentColor)
-            }
-          } catch (ignored: Exception) {}
+            try {
+              currentColor = Color.parseColor(str)
+              fromHex = true
+              applyColor()
+              fromHex = false
+              channelViews?.forEach {
+                it.setByColor(currentColor)
+              }
+            } catch (ignored: Exception) {}
         }
       }
 
@@ -123,7 +122,7 @@ class ChromaView : RelativeLayout {
     })
   }
 
-  // TODO remove all these messy state handling hacks
+ // TODO remove all these messy state handling hacks
   var fromHex = false
 
   private fun adjustBrightness(color: Int): Int {
