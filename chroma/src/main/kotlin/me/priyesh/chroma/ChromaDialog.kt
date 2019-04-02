@@ -91,6 +91,9 @@ class ChromaDialog : DialogFragment() {
         )
     }
 
+    chromaView.minButtonDarkness = 30F
+    chromaView.minSliderAlpha = 20
+
     chromaView.enableButtonBar(object : ChromaView.ButtonBarListener {
       override fun onNegativeButtonClick() = dismiss()
       override fun onPositiveButtonClick(color: Int) {
